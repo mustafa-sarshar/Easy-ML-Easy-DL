@@ -27,8 +27,6 @@ class RegressionModel:
         self.scaler_y = None
         self.visualization = visualization
         self.settings=settings
-        self.simpleLinearRegressor = None
-        self.multipleLinearRegressor = None
         self.linearRegressor = None
         self.polynomialRegressor = None
         self.polynomialLinearRegressor = None
@@ -145,35 +143,70 @@ class RegressionModel:
         from sklearn.preprocessing import PolynomialFeatures
         from sklearn.linear_model import LinearRegression
         
-        # Check for scaling
-        if self.scaling_method_X != None:
-            print(self.scaling_method_X)
-            self.scaler_X = None
-        if self.scaling_method_y != None:
-            print(self.scaling_method_y)
-            self.scaler_y = None
-            
-        poly_reg = PolynomialFeatures(degree=self.settings["polynomial_degree"])
-        X_poly = poly_reg.fit_transform(self.X[:, 0].reshape(-1, 1))
-        poly_reg.fit(X_poly, self.y)
-        poly_lin_reg = LinearRegression()
-        poly_lin_reg.fit(X_poly, self.y)
-                
+        X_dimensions = np.shape(self.X)[1]
+        
+        model_poly = PolynomialFeatures(degree=self.settings["polynomial_degree"])
+        # X_poly = poly_reg.fit_transform(self.X[:, 0].reshape(-1, 1))
+        X_poly = model_poly.fit_transform(self.X)
+        model_poly.fit(X_poly, self.y)
+        model_linear = LinearRegression()
+        model_linear.fit(X_poly, self.y)
+        
         if self.visualization == True:
-            # Visualising the Training set results
-            X_grid = np.arange(min(self.X[:, 0]), max(self.X[:, 0]), 0.1).reshape(-1, 1)
-            plt.scatter(self.X[:, 0], self.y, color="black", label="y")
-            plt.plot(X_grid, poly_lin_reg.predict(poly_reg.fit_transform(X_grid)), color="red", label="fitted line")
-            plt.title(f"{self.X_label[0]} vs. {self.y_label} (Polynomial Regression)")
-            plt.xlabel(self.X_label[0])
-            plt.ylabel(self.y_label)
-            plt.legend()
+            # if self.settings["plot_unscaled_data"] == False:
+            #     X_to_plot = 
+            if X_dimensions == 1:
+                # Visualising the Training set results
+                X_grid = np.arange(min(self.X[:, 0]), max(self.X[:, 0]), 0.1).reshape(-1, 1)
+                plt.scatter(self.X[:, 0], self.y, color="black", label="y")
+                plt.plot(X_grid, model_linear.predict(model_poly.fit_transform(X_grid)), color="red", label="fitted line")
+                plt.title(f"{self.X_label[0]} vs. {self.y_label} (Polynomial Regression)")
+                plt.xlabel(self.X_label[0])
+                plt.ylabel(self.y_label)
+                plt.legend()
+            
+            if X_dimensions == 2:
+                # Visualising the Training set results            
+                fig = plt.figure()
+                plt.clf()
+                ax = fig.add_subplot(111, projection="3d")
+                for _indx in range(np.shape(self.X)[0]):
+                    ax.scatter(xs=self.X[_indx, 0], ys=self.X[_indx, 1], zs=self.y[_indx], color="black", s=10, alpha=1, marker="s")
+                    ax.scatter(xs=self.X[_indx, 0], ys=self.X[_indx, 1], zs=model_linear.predict(model_poly.fit_transform(self.X[0, :].reshape(-1, X_dimensions)))[0][0], color="red", s=5, alpha=0.5, marker="o")
+                _x_labels = ", ".join(self.X_label)
+                plt.title(f"{_x_labels} vs. {self.y_label} (Training set)")
+                plt.xlabel(_x_labels)
+                plt.ylabel(self.y_label)
+                plt.legend(["y", "y_pred"])
+                plt.show()
+                
+            if X_dimensions >= 3:
+                # Scale y for size parameter
+                from sklearn.preprocessing import MinMaxScaler
+                scaler = MinMaxScaler(feature_range=(1, 10))
+                y_scaled = scaler.fit_transform(self.y.reshape(-1, 1))
+            
+                # Visualising the Training set results            
+                fig = plt.figure()
+                plt.clf()
+                ax = fig.add_subplot(111, projection="3d")
+                for _indx in range(np.shape(self.X)[0]):
+                    ax.scatter(xs=self.X[_indx, 0], ys=self.X[_indx, 1], zs=self.X[_indx, 2], color="black", s=y_scaled[_indx][0], alpha=1, marker="s")
+                    _size = model_linear.predict(model_poly.fit_transform(self.X[0, :].reshape(-1, X_dimensions)))[0][0]
+                    ax.scatter(xs=self.X[_indx, 0], ys=self.X[_indx, 1], zs=self.X[_indx, 2], color="red", s=_size, alpha=0.5, marker="o")
+                _x_labels = ", ".join(self.X_label)
+                plt.title(f"{_x_labels} vs. {self.y_label} (Training set)")
+                plt.xlabel(_x_labels)
+                plt.ylabel(self.y_label)
+                plt.legend(["y", "y_pred"])
+                plt.show()
+            
             plt.show()
         
-        self.polynomialRegressor = poly_reg
-        self.polynomialLinearRegressor = poly_lin_reg
+        self.polynomialRegressor = model_poly
+        self.polynomialLinearRegressor = model_linear
         
-        return poly_reg, poly_lin_reg
+        return model_poly, model_linear
     
     def polynominalRegression_predict(self, y_topred=None):
         # Predicting the Test set results
@@ -237,8 +270,7 @@ class RegressionModel:
                 ax = fig.add_subplot(111, projection="3d")
                 for _indx in range(np.shape(self.X)[0]):
                     ax.scatter(xs=self.X[_indx, 0], ys=self.X[_indx, 1], zs=self.y[_indx], color="black", s=10, alpha=1, marker="s")
-                    _size = scaler.transform(model.predict(X[0, :].reshape(-1, X_dimensions)).reshape(-1, 1)).flatten()[0]                
-                    ax.scatter(xs=X[_indx, 0], ys=X[_indx, 1], zs=self.y[_indx], color="red", s=5, alpha=0.5, marker="o")
+                    ax.scatter(xs=self.X[_indx, 0], ys=self.X[_indx, 1], zs=model.predict(self.X[0, :].reshape(-1, X_dimensions)), color="red", s=5, alpha=0.5, marker="o")
                 _x_labels = ", ".join(self.X_label)
                 plt.title(f"{_x_labels} vs. {self.y_label} (Training set)")
                 plt.xlabel(_x_labels)
@@ -246,7 +278,7 @@ class RegressionModel:
                 plt.legend(["y", "y_pred"])
                 plt.show()
                 
-            elif X_dimensions == 3:
+            elif X_dimensions >= 3:
                 # scale y for size parameter
                 from sklearn.preprocessing import MinMaxScaler
                 scaler = MinMaxScaler(feature_range=(1, 10))
@@ -288,10 +320,7 @@ class RegressionModel:
         # Predicting the Test set results
         if (self.supportVectorRegressor != None):
             if (y_topred.all):
-                if self.scaling_method_X != None:
-                    return self.scaler_X.inverse_transform(self.supportVectorRegressor.predict(self.scaler_X.transform(y_topred)))
-                else:
-                    return self.supportVectorRegressor.predict(y_topred)
+                return self.supportVectorRegressor.predict(y_topred)
             else:
                 return "y_topred is not defined!"
         else:
