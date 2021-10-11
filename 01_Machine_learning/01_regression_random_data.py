@@ -19,6 +19,8 @@ y_2D = _intercept + X0_w*X[:, 0] + X1_w*X[:, 1]
 y_3D = _intercept + X0_w*X[:, 0] + X1_w*X[:, 1] + X2_w*X[:, 2]
 y_4D = _intercept + X0_w*X[:, 0] + X1_w*X[:, 1] + X2_w*X[:, 2] + X3_w*X[:, 3]
 
+# X = X + np.random.normal(loc=0, scale=1, size=(N, X_dimensions)) # uncomment to add noise to the data
+
 # In[] Plot the data
 scaler = MinMaxScaler(feature_range=(1, 10))
 _sizes = scaler.fit_transform(y_3D.reshape(-1, 1))
@@ -52,20 +54,20 @@ reg.settings["n_estimators"] = 300
 reg_ranF = reg.randomForestRegression_train() # Random Forest Regression
 
 # Test the predictions
-y_topred = np.array([[-10], [2], [12]])
+y_topred = np.array([[-10], [2], [1200]])
 
 print(f"The fuction is: {_intercept} + ({X0_w})X")
 print(f"Given y: {y_topred.flatten()},\texpected y^: [{(_intercept+y_topred[0]*X0_w)[0]} {(_intercept+y_topred[1]*X0_w)[0]} {(_intercept+y_topred[2]*X0_w)[0]}]")
 print("Linear Regression")
-print(f"y: [{(_intercept+y_topred[0]*X0_w)[0]},\t{(_intercept+y_topred[1]*X0_w)[0]} {(_intercept+y_topred[2]*X0_w)[0]}]", " y^:", reg.linearRegression_predict(y_topred))
+print(f"y: [{(_intercept+y_topred[0]*X0_w)[0]}, {(_intercept+y_topred[1]*X0_w)[0]}, {(_intercept+y_topred[2]*X0_w)[0]}]", "\ty^:", reg.linearRegression_predict(y_topred))
 print("Polynomial Regression")
-print(f"y: [{(_intercept+y_topred[0]*X0_w)[0]},\t{(_intercept+y_topred[1]*X0_w)[0]} {(_intercept+y_topred[2]*X0_w)[0]}]", " y^:", reg.polynominalRegression_predict(y_topred))
+print(f"y: [{(_intercept+y_topred[0]*X0_w)[0]}, {(_intercept+y_topred[1]*X0_w)[0]}, {(_intercept+y_topred[2]*X0_w)[0]}]", "\ty^:", reg.polynominalRegression_predict(y_topred))
 print("Support Vector Regression")
-print(f"y: [{(_intercept+y_topred[0]*X0_w)[0]},\t{(_intercept+y_topred[1]*X0_w)[0]} {(_intercept+y_topred[2]*X0_w)[0]}]", " y^:", reg.supportVectorRegression_predict(y_topred))
+print(f"y: [{(_intercept+y_topred[0]*X0_w)[0]}, {(_intercept+y_topred[1]*X0_w)[0]}, {(_intercept+y_topred[2]*X0_w)[0]}]", "\ty^:", reg.supportVectorRegression_predict(y_topred))
 print("Decision Tree Regression")
-print(f"y: [{(_intercept+y_topred[0]*X0_w)[0]},\t{(_intercept+y_topred[1]*X0_w)[0]} {(_intercept+y_topred[2]*X0_w)[0]}]", " y^:", reg.decisionTreeRegression_predict(y_topred))
+print(f"y: [{(_intercept+y_topred[0]*X0_w)[0]}, {(_intercept+y_topred[1]*X0_w)[0]}, {(_intercept+y_topred[2]*X0_w)[0]}]", "\ty^:", reg.decisionTreeRegression_predict(y_topred))
 print("Random forest Regression")
-print(f"y: [{(_intercept+y_topred[0]*X0_w)[0]},\t{(_intercept+y_topred[1]*X0_w)[0]} {(_intercept+y_topred[2]*X0_w)[0]}]", " y^:", reg.randomForestRegression_predict(y_topred))
+print(f"y: [{(_intercept+y_topred[0]*X0_w)[0]}, {(_intercept+y_topred[1]*X0_w)[0]}, {(_intercept+y_topred[2]*X0_w)[0]}]", "\ty^:", reg.randomForestRegression_predict(y_topred))
 
 #################### Multi Dimesional Datasets and Models ####################
 # In[] Test the polynomialLinearRegressor (X: 2D)
