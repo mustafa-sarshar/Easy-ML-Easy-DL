@@ -6,11 +6,13 @@ from utils.mussar_regression import RegressionModel
 
 # In[] init variables
 N = 100
-X_dimensions = 3
+X_dimensions = 4
 X = np.zeros((N, X_dimensions))
+X_sums = np.zeros((1, X_dimensions))
 for _indx in range(np.shape(X)[1]):
     X[:, _indx] = (np.random.random(N) * 10 - 10) * (_indx+1)
-y = (X[:, 0] + X[:, 1] + X[:, 2]) ** 2
+
+y = (X[:, 0] + X[:, 1] + X[:, 2] + X[:, 3]) ** 2
 scaler = MinMaxScaler(feature_range=(1, 10))
 y_scaled = scaler.fit_transform(y.reshape(-1, 1))
 
@@ -41,13 +43,22 @@ reg_SLR.predict(y_topred)
 print(y_topred.flatten(), "-->", reg.linearRegression_predict(y_topred))
 
 # In[] Test the linearRegression method (X: 3D)
-reg = RegressionModel(X=X, y=y, X_label=["X_label_1", "X_label_2", "X_label_3"], y_label="y_label", visualization=True, scaling_method_X="Standard", scaling_method_y="Standard") # Init the class
+reg = RegressionModel(X=X[:, 0:3], y=y, X_label=["X_label_1", "X_label_2", "X_label_3"], y_label="y_label", visualization=True, scaling_method_X=_scaling_method, scaling_method_y=_scaling_method) # Init the class
 reg_SLR = reg.linearRegression_train()
 y_topred = np.array([[20, 500, 600]])
 reg_SLR.predict(y_topred)
 print(y_topred.flatten(), "-->", reg.linearRegression_predict(y_topred))
 
+# In[] Test the linearRegression method (X: 4D)
+_scaling_method = "Standard"
+reg = RegressionModel(X=X[:, :], y=y, X_label=["X_label_1", "X_label_2", "X_label_3"], y_label="y_label", visualization=True, scaling_method_X=_scaling_method, scaling_method_y=_scaling_method) # Init the class
+reg_SLR = reg.linearRegression_train()
+y_topred = np.array([[20, 500, 600, 200]])
+reg_SLR.predict(y_topred)
+print(y_topred.flatten(), "-->", reg.linearRegression_predict(y_topred))
+
 # In[] Test the polynomialLinearRegressor (X: 1D)
+_scaling_method = "Standard"
 reg = RegressionModel(X=X[:, 0:1], y=y, X_label=["X_label_1"], y_label="y_label", visualization = True) # Init the class
 reg.settings["polynomial_degree"] = 4
 reg.visualization = True
@@ -71,4 +82,3 @@ reg_svr = reg.supportVectorRegression_train()
 y_topred = np.array([[ -5.02763379,  -8.43586104,  -5.45849283], [ -9.70901658,  -1.15396285, -15.97706972]])
 reg_svr.predict(reg.scaler_X.transform(y_topred))
 # print(y_topred.flatten(), "-->", reg.supportVectorRegression_predict(y_topred))
-
