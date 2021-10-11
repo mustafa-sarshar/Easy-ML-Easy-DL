@@ -34,7 +34,7 @@ for _indx in range(np.shape(X)[0]):
 plt.show()
 
 # In[] Test the linearRegression method (X: 1D)
-_scaling_method = "Standard"
+_scaling_method = None
 reg = RegressionModel(X=X[:, 0:1], y=y_1D, X_label=["X_label_1"], y_label="y_label", visualization=True, scaling_method_X=_scaling_method, scaling_method_y=_scaling_method) # Init the class
 reg_SLR = reg.linearRegression_train()
 y_topred = np.array([20, 500, 600]).reshape(-1, 1)
@@ -42,7 +42,7 @@ reg_SLR.predict(y_topred)
 print(y_topred.flatten(), "-->", reg.linearRegression_predict(y_topred))
 
 # In[] Test the linearRegression method (X: 2D)
-_scaling_method = "Standard"
+_scaling_method = None
 reg = RegressionModel(X=X[:, 0:2], y=y_2D, X_label=["X_label_1", "X_label_2"], y_label="y_label", visualization=True, scaling_method_X=_scaling_method, scaling_method_y=_scaling_method) # Init the class
 reg_SLR = reg.linearRegression_train()
 y_topred = np.array([[20, 500]])
@@ -50,6 +50,7 @@ reg_SLR.predict(y_topred)
 print(y_topred.flatten(), "-->", reg.linearRegression_predict(y_topred))
 
 # In[] Test the linearRegression method (X: 3D)
+_scaling_method = None
 reg = RegressionModel(X=X[:, 0:3], y=y_3D, X_label=["X_label_1", "X_label_2", "X_label_3"], y_label="y_label", visualization=True, scaling_method_X=_scaling_method, scaling_method_y=_scaling_method) # Init the class
 reg_SLR = reg.linearRegression_train()
 y_topred = np.array([[20, 500, 600]])
@@ -57,6 +58,7 @@ reg_SLR.predict(y_topred)
 print(y_topred.flatten(), "-->", reg.linearRegression_predict(y_topred))
 
 # In[] Test the linearRegression method (X: 4D)
+_scaling_method = None
 _scaling_method = "Standard"
 reg = RegressionModel(X=X[:, 0:4], y=y_4D, X_label=["X_label_1", "X_label_2", "X_label_3", "X_label_4"], y_label="y_label", visualization=True, scaling_method_X=_scaling_method, scaling_method_y=_scaling_method) # Init the class
 reg_SLR = reg.linearRegression_train()
@@ -65,7 +67,7 @@ reg_SLR.predict(y_topred)
 print(y_topred.flatten(), "-->", reg.linearRegression_predict(y_topred))
 
 # In[] Test the polynomialLinearRegressor (X: 1D)
-_scaling_method = "Standard"
+_scaling_method = None
 reg = RegressionModel(X=X[:, 0:1], y=y_1D, X_label=["X_label_1"], y_label="y_label", visualization=True, scaling_method_X=_scaling_method, scaling_method_y=_scaling_method) # Init the class
 reg.settings["polynomial_degree"] = 4
 reg_PolyReg = reg.polynominalRegression_train()
@@ -73,15 +75,15 @@ y_topred = np.array([[20]])
 print(y_topred.flatten(), "-->", reg.polynominalRegression_predict(y_topred))
 
 # In[] Test the polynomialLinearRegressor (X: 2D)
-_scaling_method = "Standard"
-reg = RegressionModel(X=X[:, 0:2], y=y_2D, X_label=["X_label_1", "X_label_2", "X_label_3"], y_label="y_label", visualization=True, scaling_method_X=_scaling_method, scaling_method_y=_scaling_method) # Init the class
+_scaling_method = None
+reg = RegressionModel(X=X[:, 0:2], y=y_2D, X_label=["X_label_1", "X_label_2"], y_label="y_label", visualization=True, scaling_method_X=_scaling_method, scaling_method_y=_scaling_method) # Init the class
 reg.settings["polynomial_degree"] = 4
 reg_PolyReg = reg.polynominalRegression_train()
 y_topred = np.array([[20, 500]])
 print(y_topred.flatten(), "-->", reg.polynominalRegression_predict(y_topred))
 
 # In[] Test the polynomialLinearRegressor (X: 3D)
-_scaling_method = "Standard"
+_scaling_method = None
 reg = RegressionModel(X=X[:, 0:3], y=y_3D, X_label=["X_label_1", "X_label_2", "X_label_3"], y_label="y_label", visualization=True, scaling_method_X=_scaling_method, scaling_method_y=_scaling_method) # Init the class
 reg.settings["polynomial_degree"] = 4
 reg_PolyReg = reg.polynominalRegression_train()

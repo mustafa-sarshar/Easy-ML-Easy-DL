@@ -12,7 +12,8 @@ class RegressionModel:
             settings=dict(
                 polynomial_degree=4,
                 svr_kernel="rbf",
-                plot_unscaled_data=True
+                plot_unscaled_data=True,
+                random_state=0
             )
     ):
         import numpy as np
@@ -172,7 +173,7 @@ class RegressionModel:
                 ax = fig.add_subplot(111, projection="3d")
                 for _indx in range(np.shape(self.X)[0]):
                     ax.scatter(xs=self.X[_indx, 0], ys=self.X[_indx, 1], zs=self.y[_indx], color="black", s=10, alpha=1, marker="s")
-                    ax.scatter(xs=self.X[_indx, 0], ys=self.X[_indx, 1], zs=model_linear.predict(model_poly.fit_transform(self.X[0, :].reshape(-1, X_dimensions)))[0][0], color="red", s=5, alpha=0.5, marker="o")
+                    ax.scatter(xs=self.X[_indx, 0], ys=self.X[_indx, 1], zs=model_linear.predict(model_poly.fit_transform(self.X[0, :].reshape(-1, X_dimensions))), color="red", s=5, alpha=0.5, marker="o")
                 _x_labels = ", ".join(self.X_label)
                 plt.title(f"{_x_labels} vs. {self.y_label} (Training set)")
                 plt.xlabel(_x_labels)
@@ -192,8 +193,8 @@ class RegressionModel:
                 ax = fig.add_subplot(111, projection="3d")
                 for _indx in range(np.shape(self.X)[0]):
                     ax.scatter(xs=self.X[_indx, 0], ys=self.X[_indx, 1], zs=self.X[_indx, 2], color="black", s=y_scaled[_indx][0], alpha=1, marker="s")
-                    _size = model_linear.predict(model_poly.fit_transform(self.X[0, :].reshape(-1, X_dimensions)))[0][0]
-                    ax.scatter(xs=self.X[_indx, 0], ys=self.X[_indx, 1], zs=self.X[_indx, 2], color="red", s=_size, alpha=0.5, marker="o")
+                    _size = model_linear.predict(model_poly.fit_transform(self.X[0, :].reshape(-1, X_dimensions)))
+                    ax.scatter(xs=self.X[_indx, 0], ys=self.X[_indx, 1], zs=self.X[_indx, 2], color="red", s=scaler.transform(_size.reshape(-1, 1)), alpha=0.5, marker="o")
                 _x_labels = ", ".join(self.X_label)
                 plt.title(f"{_x_labels} vs. {self.y_label} (Training set)")
                 plt.xlabel(_x_labels)
@@ -326,26 +327,14 @@ class RegressionModel:
         else:
             return "Please train the model first!"
         
-    def decisionTreeRegression(
-            X_array = [],
-            y_array = [],
-            X_label = "X_Label",
-            y_label = "y_Label",
-            y_topred = 0,
-            test_size = 1/3,
-            visualization = False
-    ):
+    def decisionTreeRegression(self):
     
         import numpy as np
         import matplotlib.pyplot as plt
         
-        # Initializing the variables
-        X = X_array
-        y = y_array
-        
         # Fitting Decision Tree Regression to the dataset
         from sklearn.tree import DecisionTreeRegressor
-        regressor = DecisionTreeRegressor(random_state=0)
+        regressor = DecisionTreeRegressor(random_state=self.settings["random_state"])
         regressor.fit(X, y)
         
         # Predicting a new result
