@@ -4,47 +4,70 @@ class RegressionModel:
             self,
             X=[],
             y=[],
-            poly_degree=1,
-            X_label="X_label",
+            X_label=["X_label_1"],
             y_label="y_label",
-            scaling_method=None,
-            visualization=False
+            scaling_method_X=None,
+            scaling_method_y=None,
+            visualization=False,
+            settings=dict(
+                polynomial_degree=4,
+                svr_kernel="rbf"
+            )
     ):
         import numpy as np
         
         self.X = np.array(X)
         self.y = np.array(y)
-        self.poly_degree = poly_degree
         self.X_label = X_label
-        self.y_label = y_label
-        self.scaling_method = scaling_method
+        self.y_label = y_label        
+        self.scaling_method_X = scaling_method_X
+        self.scaling_method_y = scaling_method_y
+        self.scaler_X = None
+        self.scaler_y = None
         self.visualization = visualization
+        self.settings=settings
         self.simpleLinearRegressor = None
+        self.multipleLinearRegressor = None
         self.polynomialRegressor = None
         self.polynomialLinearRegressor = None
+        self.supportVectorRegressor = None
         
     def __repr__(self):
         return f"X: {self.X.shape}, y: {self.y.shape}"
+    
+    def get_scalers(self):
+        return dict(
+            scaler_X=self.scaler_X,
+            scaler_y=self.scaler_y,
+            scaler_method_X=self.scaling_method_X,
+            scaler_method_y=self.scaler_method_y
+        )
 
     def simpleLinearRegression_train(self):
         
         from sklearn.linear_model import LinearRegression
         import matplotlib.pyplot as plt     
         
-        if self.scaling_method != None:
-            print(self.scaling_method)
+        # Check for scaling
+        if self.scaling_method_X != None:
+            print(self.scaling_method_X)
+            self.scaler_X = None
+        if self.scaling_method_y != None:
+            print(self.scaling_method_y)
+            self.scaler_y = None
         
         # Fitting Simple Linear Regression to the Training set        
         model = LinearRegression()
-        model.fit(self.X.reshape(-1, 1), self.y.flatten())       
+        model.fit(self.X[:, 0].reshape(-1, 1), self.y.flatten())       
         
         if self.visualization == True:
             # Visualising the Training set results
-            plt.scatter(self.X, self.y, color="black")
-            plt.plot(self.X, model.predict(self.X.reshape(-1, 1)), color="red")
-            plt.title(f"{self.X_label} vs. {self.y_label} (Training set)")
-            plt.xlabel(self.X_label)
+            plt.scatter(self.X[:, 0], self.y, color="black", label="y")
+            plt.plot(self.X[:, 0], model.predict(self.X[:, 0].reshape(-1, 1)), color="red", label="fitted line")
+            plt.title(f"{self.X_label[0]} vs. {self.y_label} (Training set)")
+            plt.xlabel(self.X_label[0])
             plt.ylabel(self.y_label)
+            plt.legend()
             plt.show()
         
         self.simpleLinearRegressor = model
@@ -60,8 +83,58 @@ class RegressionModel:
         else:
             return "Please train the model first!"
     
-    def multipleLinearRegression():
-        pass
+    def multipleLinearRegression_train(self):
+        from sklearn.linear_model import LinearRegression
+        import matplotlib.pyplot as plt
+        import numpy as np
+        
+        X_dimensions = np.shape(self.X)[1]
+         
+        # Check for scaling
+        if self.scaling_method_X != None:
+            print(self.scaling_method_X)
+            self.scaler_X = None
+        if self.scaling_method_y != None:
+            print(self.scaling_method_y)
+            self.scaler_y = None
+        
+        # Fitting Multiple Linear Regression to the Training set        
+        model = LinearRegression()
+        model.fit(self.X, self.y.flatten())
+        
+        if self.visualization == True:
+            # scale y for size parameter
+            from sklearn.preprocessing import MinMaxScaler
+            scaler = MinMaxScaler(feature_range=(1, 10))
+            y_scaled = scaler.fit_transform(self.y.reshape(-1, 1))
+        
+            # Visualising the Training set results            
+            fig = plt.figure()
+            plt.clf()
+            ax = fig.add_subplot(111, projection="3d")
+            for _indx in range(np.shape(self.X)[0]):
+                ax.scatter(xs=self.X[_indx, 0], ys=self.X[_indx, 1], zs=self.X[_indx, 2], color="black", s=y_scaled[_indx][0], alpha=1, marker="s")
+                _size = scaler.transform(model.predict(self.X[0, :].reshape(-1, X_dimensions)).reshape(-1, 1)).flatten()[0]                
+                ax.scatter(xs=self.X[_indx, 0], ys=self.X[_indx, 1], zs=self.X[_indx, 2], color="red", s=_size, alpha=0.5, marker="o")
+            _x_labels = ", ".join(self.X_label)
+            plt.title(f"{_x_labels} vs. {self.y_label} (Training set)")
+            plt.xlabel(_x_labels)
+            plt.ylabel(self.y_label)
+            plt.legend(["y", "y_pred"])
+            plt.show()
+        
+        self.multipleLinearRegressor = model
+        return model
+    
+    def multipleLinearRegression_predict(self, y_topred=None):
+        # Predicting the Test set results
+        if (self.multipleLinearRegressor != None):
+            if (y_topred.all):
+                return self.multipleLinearRegressor.predict(y_topred)
+            else:
+                return "y_topred is not defined!"
+        else:
+            return "Please train the model first!"
     
     def polynominalRegression_train(self):
         import matplotlib.pyplot as plt
@@ -71,20 +144,29 @@ class RegressionModel:
         from sklearn.preprocessing import PolynomialFeatures
         from sklearn.linear_model import LinearRegression
         
-        poly_reg = PolynomialFeatures(degree=self.poly_degree)
-        X_poly = poly_reg.fit_transform(self.X.reshape(-1, 1))
+        # Check for scaling
+        if self.scaling_method_X != None:
+            print(self.scaling_method_X)
+            self.scaler_X = None
+        if self.scaling_method_y != None:
+            print(self.scaling_method_y)
+            self.scaler_y = None
+            
+        poly_reg = PolynomialFeatures(degree=self.settings["polynomial_degree"])
+        X_poly = poly_reg.fit_transform(self.X[:, 0].reshape(-1, 1))
         poly_reg.fit(X_poly, self.y)
         poly_lin_reg = LinearRegression()
         poly_lin_reg.fit(X_poly, self.y)
                 
         if self.visualization == True:
             # Visualising the Training set results
-            X_grid = np.arange(min(self.X), max(self.X), 0.1).reshape(-1, 1)
-            plt.scatter(self.X, self.y, color="black")
-            plt.plot(X_grid, poly_lin_reg.predict(poly_reg.fit_transform(X_grid)), color="red")
-            plt.title(f"{self.X_label} vs. {self.y_label} (Polynomial Regression)")
-            plt.xlabel(self.X_label)
+            X_grid = np.arange(min(self.X[:, 0]), max(self.X[:, 0]), 0.1).reshape(-1, 1)
+            plt.scatter(self.X[:, 0], self.y, color="black", label="y")
+            plt.plot(X_grid, poly_lin_reg.predict(poly_reg.fit_transform(X_grid)), color="red", label="fitted line")
+            plt.title(f"{self.X_label[0]} vs. {self.y_label} (Polynomial Regression)")
+            plt.xlabel(self.X_label[0])
             plt.ylabel(self.y_label)
+            plt.legend()
             plt.show()
         
         self.polynomialRegressor = poly_reg
@@ -102,55 +184,118 @@ class RegressionModel:
         else:
             return "Please train the model first!"
     
-    def supportVectorRegression(
-            X_array = [],
-            y_array = [],
-            X_label = "X_Label",
-            y_label = "y_Label",
-            y_topred = 0,
-            test_size = 1/3,
-            scaling = False,
-            visualization = False
-    ):
-        
+    def supportVectorRegression_train(self):
         import numpy as np
         import matplotlib.pyplot as plt
         
-        # Initializing the variables
-        X = X_array
-        y = y_array
-        
-        # Feature Scaling
-        if scaling == True:
-            from sklearn.preprocessing import StandardScaler
-            sc_X = StandardScaler()
-            sc_y = StandardScaler()
-            X = sc_X.fit_transform(X)
-            y = sc_y.fit_transform(y)
+        X_dimensions = np.shape(self.X)[1]
+        # Kernels: {'linear', 'poly', 'rbf', 'sigmoid', 'precomputed'}, default='rbf'
+        # Check for scaling
+        if self.scaling_method_X != None:     
+            if (self.scaling_method_X == "Standard"):
+                from sklearn.preprocessing import StandardScaler
+                sc_X = StandardScaler()
+                self.X = sc_X.fit_transform(self.X)
+                self.scaler_X = sc_X
+        if self.scaling_method_y != None:
+            if (self.scaling_method_y == "Standard"):                
+                from sklearn.preprocessing import StandardScaler
+                sc_y = StandardScaler()
+                self.y = sc_y.fit_transform(self.y.reshape(-1, 1))
+                self.scaler_y = sc_y
         
         # Fitting SVR to the dataset
         from sklearn.svm import SVR
-        regressor = SVR(kernel="rbf")
-        regressor.fit(X, y)
         
-        # Predicting a new result
-        if scaling == True:
-            y_pred = sc_y.inverse_transform(regressor.predict(sc_X.transform(np.array([[y_topred]]))))
-        else:
-            y_pred = regressor.predict(np.array([[y_topred]]))
-                
-        # Visualising the SVR results (for higher resolution and smoother curve)
-        X_grid = np.arange(min(X), max(X), 0.01) # choice of 0.01 instead of 0.1 step because the data is feature scaled
-        X_grid = X_grid.reshape((len(X_grid), 1))
-        plt.scatter(X, y, color="red")
-        plt.plot(X_grid, regressor.predict(X_grid), color="blue")
-        plt.title(f"{X_label} vs. {y_label} (SupportVector Regression)")
-        plt.xlabel(X_label)
-        plt.ylabel(y_label)
-        plt.show()
+        model = SVR(kernel=self.settings["svr_kernel"])
+        model.fit(self.X, self.y.flatten())
+             
+        if self.visualization == True:
             
-        return y_pred
+            if X_dimensions == 1:
+                # Visualising the Training set results
+                X_grid = np.arange(min(self.scaler_X.inverse_transform(self.X[:, 0])), max(self.scaler_X.inverse_transform(self.X[:, 0])), 0.01).reshape((-1, 1)) # choice of 0.01 instead of 0.1 step because the data is feature scaled
+                plt.clf()
+                plt.scatter(self.scaler_X.inverse_transform(self.X[:, 0]), self.scaler_y.inverse_transform(self.y), color="black", label="y")
+                plt.plot(X_grid, self.scaler_y.inverse_transform(model.predict(self.scaler_X.inverse_transform(X_grid))), color="red", label="fitted line")
+                plt.title(f"{self.X_label[0]} vs. {self.y_label} (SupportVector Regression)")
+                plt.xlabel(self.X_label)
+                plt.ylabel(self.y_label)
+                plt.legend()
+                plt.show()      
+            
+            elif X_dimensions == 2:
+                # scale y for size parameter
+                from sklearn.preprocessing import MinMaxScaler
+                scaler = MinMaxScaler(feature_range=(1, 10))
+                y_scaled = scaler.fit_transform(self.y.reshape(-1, 1))
+            
+                # Visualising the Training set results            
+                fig = plt.figure()
+                plt.clf()
+                ax = fig.add_subplot(111, projection="3d")
+                for _indx in range(np.shape(self.X)[0]):
+                    ax.scatter(xs=self.X[_indx, 0], ys=self.X[_indx, 1], zs=self.y[_indx], color="black", s=10, alpha=1, marker="s")
+                    _size = scaler.transform(model.predict(X[0, :].reshape(-1, X_dimensions)).reshape(-1, 1)).flatten()[0]                
+                    ax.scatter(xs=X[_indx, 0], ys=X[_indx, 1], zs=self.y[_indx], color="red", s=5, alpha=0.5, marker="o")
+                _x_labels = ", ".join(self.X_label)
+                plt.title(f"{_x_labels} vs. {self.y_label} (Training set)")
+                plt.xlabel(_x_labels)
+                plt.ylabel(self.y_label)
+                plt.legend(["y", "y_pred"])
+                plt.show()
+                
+            elif X_dimensions == 3:
+                # scale y for size parameter
+                from sklearn.preprocessing import MinMaxScaler
+                scaler = MinMaxScaler(feature_range=(1, 10))
+                y_scaled = scaler.fit_transform(self.y.reshape(-1, 1))
+            
+                # Visualising the Training set results
+                fig = plt.figure()
+                plt.clf()
+                ax = fig.add_subplot(111, projection="3d")
+                for _indx in range(np.shape(self.X)[0]):
+                    _point = self.scaler_X.inverse_transform(self.X[_indx, :])
+                    _size = model.predict(self.scaler_X.transform(_point.reshape(1, -1)))
+                    _size_scaled_minmax = scaler.transform(_size.reshape(-1, 1))[0]
+                    ax.scatter(
+                        xs=_point[0],
+                        ys=_point[1],
+                        zs=_point[2],
+                        s=y_scaled[_indx],
+                        color="black", alpha=1, marker="s"
+                    )
+                    ax.scatter(
+                        xs=_point[0],
+                        ys=_point[1],
+                        zs=_point[2],
+                        s=_size_scaled_minmax,
+                        color="red", alpha=0.5, marker="o"
+                    )
+                _x_labels = ", ".join(self.X_label)
+                plt.title(f"{_x_labels} vs. {self.y_label} (Training set)")
+                plt.xlabel(_x_labels)
+                plt.ylabel(self.y_label)
+                plt.legend(["y", "y_pred"])
+                plt.show()
+        
+        self.supportVectorRegressor = model
+        return model
     
+    def supportVectorRegression_predict(self, y_topred=None):
+        # Predicting the Test set results
+        if (self.supportVectorRegressor != None):
+            if (y_topred.all):
+                if self.scaling_method_X != None:
+                    return self.scaler_X.inverse_transform(self.supportVectorRegressor.predict(self.scaler_X.transform(y_topred)))
+                else:
+                    return self.supportVectorRegressor.predict(y_topred)
+            else:
+                return "y_topred is not defined!"
+        else:
+            return "Please train the model first!"
+        
     def decisionTreeRegression(
             X_array = [],
             y_array = [],
@@ -230,38 +375,83 @@ class RegressionModel:
 
 # In[]
 if __name__ == "__main__":
+    
     import numpy as np
     import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
+    from sklearn.preprocessing import MinMaxScaler
     
-    N = 100000
-    X = np.random.randn(N) * N - N
-    y = X ** 2
+    # In[] init variables
+    N = 10
+    X_dimensions = 3
+    X = np.zeros((N, X_dimensions))
+    for _indx in range(np.shape(X)[1]):
+        X[:, _indx] = (np.random.random(N) * 10 - 10) * (_indx+1)
+    y = (X[:, 0] + X[:, 1] + X[:, 2]) ** 2
+    scaler = MinMaxScaler(feature_range=(1, 10))
+    y_scaled = scaler.fit_transform(y.reshape(-1, 1))
     
+    # In[] Plot the data
+    fig = plt.figure()
     plt.clf()
-    plt.scatter(X, y)
-    plt.show()    
-     
-    reg = RegressionModel(
-        X=X,
-        y=y,
-        X_label="X_label",
-        y_label="y_label",
-        visualization = True
-    )
+    ax = fig.add_subplot(111, projection='3d')
     
-    # Test the simpleLinearRegression method   
+    for _indx in range(np.shape(X)[0]):
+        ax.scatter(xs=X[_indx, 0], ys=X[_indx, 1], zs=X[_indx, 2], color="blue", s=y_scaled[_indx][0], alpha=1, marker="s")
+        ax.scatter(xs=X[_indx, 0], ys=X[_indx, 1], zs=X[_indx, 2], color="red", s=5, alpha=0.5, marker="o")
+    plt.show()
+
+    # In[] Test the simpleLinearRegression method (X: 1D)
+    reg = RegressionModel(X=X[:, 0:1], y=y, X_label=["X_label_1"], y_label="y_label", visualization = True) # Init the class
+    reg.visualization = True
     reg_SLR = reg.simpleLinearRegression_train()
     y_topred = np.array([20, 500, 600]).reshape(-1, 1)
-    reg_SLR.predict(y_topred)
+    # reg_SLR.predict(y_topred)
     print(y_topred.flatten(), "-->", reg.simpleLinearRegression_predict(y_topred))
     
+    # In[] Test the multipleLinearRegression method (X: 2D)
+    reg = RegressionModel(X=X, y=y, X_label=["X_label_1", "X_label_2"], y_label="y_label", visualization = True) # Init the class
+    reg.visualization = False
+    reg.scaling_method_X = "Standard"
+    reg_MLR = reg.multipleLinearRegression_train()
+    y_topred = np.array([[20, 30]])
+    # reg_MLR.predict(y_topred)
+    print(y_topred.flatten(), "-->", reg.multipleLinearRegression_predict(y_topred))
     
-    # Test the polynomialLinearRegressor
-    reg.poly_degree = 4
+    # In[] Test the multipleLinearRegression method (X: 3D)
+    reg = RegressionModel(X=X, y=y, X_label=["X_label_1", "X_label_2", "X_label_3"], y_label="y_label", visualization = True) # Init the class
+    reg.visualization = True
+    reg.scaling_method_X = "Standard"
+    reg_MLR = reg.multipleLinearRegression_train()
+    y_topred = np.array([[20, 30, 40]])
+    # reg_MLR.predict(y_topred)
+    print(y_topred.flatten(), "-->", reg.multipleLinearRegression_predict(y_topred))
+    
+    # In[] Test the polynomialLinearRegressor (X: 1D)
+    reg = RegressionModel(X=X[:, 0:1], y=y, X_label=["X_label_1"], y_label="y_label", visualization = True) # Init the class
+    reg.settings["polynomial_degree"] = 4
     reg.visualization = True
     reg_PolyReg = reg.polynominalRegression_train()
     y_topred = np.array([20, 500, 600]).reshape(-1, 1)
-    reg_SLR.predict(y_topred)
+    # reg_PolyReg.predict(y_topred)
     print(y_topred.flatten(), "-->", reg.polynominalRegression_predict(y_topred))
+    
+    # In[] Test the supportVectorRegressor (X: 1D)
+    reg = RegressionModel(X=X[:, 0:1], y=y, X_label=["X_label_1"], y_label="y_label", visualization=True, scaling_method_X="Standard", scaling_method_y="Standard") # Init the class
+    reg.settings["svr_kernel"] = "rbf"
+    reg_svr = reg.supportVectorRegression_train()
+    y_topred = np.array([[20], [40], [1600]])    
+    reg.scaler_X.inverse_transform(reg_svr.predict(reg.scaler_X.transform(y_topred)))
+    # print(y_topred.flatten(), "-->", reg.supportVectorRegression_predict(y_topred))
+    
+    # In[] Test the supportVectorRegressor (X: 3D)
+    reg = RegressionModel(X=X, y=y, X_label=["X_label_1", "X_label_2", "X_label_3"], y_label="y_label", visualization = True) # Init the class
+    reg.settings["svr_kernel"] = "rbf"
+    reg.visualization = True
+    reg.scaling_method_X = "Standard"
+    reg_svr = reg.supportVectorRegression_train()
+    y_topred = np.array([[ -5.02763379,  -8.43586104,  -5.45849283], [ -9.70901658,  -1.15396285, -15.97706972]])
+    reg_svr.predict(reg.scaler_X.transform(y_topred))
+    # print(y_topred.flatten(), "-->", reg.supportVectorRegression_predict(y_topred))
 
     
