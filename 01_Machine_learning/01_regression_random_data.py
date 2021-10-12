@@ -33,7 +33,9 @@ for _indx in range(np.shape(X)[0]):
     ax.scatter(xs=X[_indx, 0], ys=X[_indx, 1], zs=X[_indx, 2], color="red", s=5, alpha=0.5, marker="o")
 plt.show()
 
-#################### Single Dimesional Datasets and Models ####################
+# =============================================================================
+# ################## Single Dimesional Datasets and Models ####################
+# =============================================================================
 # In[] Test the Models for 1D datasets
 # Init the Regression Classs
 _scaling_method = None
@@ -70,7 +72,9 @@ print(f"y: [{(_intercept+y_topred[0]*X0_w)[0]}, {(_intercept+y_topred[1]*X0_w)[0
 print("Random forest Regression")
 print(f"y: [{(_intercept+y_topred[0]*X0_w)[0]}, {(_intercept+y_topred[1]*X0_w)[0]}, {(_intercept+y_topred[2]*X0_w)[0]}]", "\ty^:", reg.randomForestRegression_predict(y_topred))
 
-#################### Multi Dimesional Datasets and Models ####################
+# =============================================================================
+# ################### Multi Dimesional Datasets and Models ####################
+# =============================================================================
 # In[] Test the polynomialLinearRegressor (X: 2D)
 _scaling_method = None
 reg = RegressionModel(X=X[:, 0:2], y=y_2D, X_label=["X_label_1", "X_label_2"], y_label="y_label", visualization=True, scaling_method_X=_scaling_method, scaling_method_y=_scaling_method)
