@@ -6,10 +6,10 @@ from sklearn.preprocessing import MinMaxScaler
 from utils.mussar_clustering import ClusteringModel
 
 # In[] init the dataset
-df_gait = pd.read_csv("datasets/Gait/gait_LeftAnkle.csv", skiprows=12)
-X = df_gait.loc[:, ["Gyr_Z", "FreeAcc_U"]]
-# y = df_gait.loc[:, -1]
-# n_cluster = len(set(y))
+df_breast_cancer = pd.read_csv("datasets/others/breast_cancer.csv")
+X = df_breast_cancer.iloc[:, 1:3]
+y = df_breast_cancer.iloc[:, -1]
+n_cluster = len(set(y))
 
 # In[] Fit the model
 _scaling_method = None

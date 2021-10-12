@@ -1,8 +1,6 @@
 # In[] Import libs
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
 from utils.mussar_classification import ClassificationModel
 
 # In[] init the dataset

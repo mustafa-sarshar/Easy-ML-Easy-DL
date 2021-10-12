@@ -7,9 +7,9 @@ class ClusteringModel:
             scaling_method_X=None,
             visualization=False,
             settings=dict(
-                kMeans_n_cluster=1,
+                kMeans_n_cluster=2,
                 kMeans_init="k-means++",
-                hierarchy_n_cluster=1,
+                hierarchy_n_cluster=2,
                 random_state=0,
                 plot_unscaled_data=True,
             )
@@ -93,6 +93,7 @@ class ClusteringModel:
                 plt.show()
                 
             elif X_dimensions == 3:
+                pass
                 # Inspired by https://stackoverflow.com/questions/51278752/visualize-2d-3d-decision-surface-in-svm-scikit-learn
                 # The equation of the separating plane is given by all x so that np.dot(svc.coef_[0], x) + b = 0.
                 # Solve for w3 (z)
@@ -112,48 +113,64 @@ class ClusteringModel:
             elif X_dimensions > 3:
                 print("Visualization for X: {X_dimensions}D is not possible at the moment.!")
     
-    def calculate_wcss(self, clustering_method="kmeans", n_clusters_max=2, wcss_method="elbow"):
+    def calculate_wcss(self, clustering_method="kmeans", n_clusters_max=10, wcss_method="elbow_yellowbrick"):
         
-        if clustering_method == "kmeans":
-            if wcss_method == "elbow":
-                import matplotlib.pyplot as plt
-                from sklearn.cluster import KMeans
-                # Using the elbow method to find the optimal number of clusters            
-                wcss = []
-                for _n_cluster in range(1, n_clusters_max):
-                    kmeans = KMeans(n_clusters=_n_cluster, init=self.settings["kMeans_init"], random_state=self.settings["random_state"])
-                    kmeans.fit(self.X)
-                    wcss.append(kmeans.inertia_)
-                plt.plot(range(1, n_clusters_max), wcss)
-                plt.title("The Elbow Method")
-                plt.xlabel("Number of clusters")
-                plt.ylabel("WCSS")
-                plt.show()
+        if wcss_method == "elbow_yellowbrick":
+            from sklearn.cluster import KMeans
+            from yellowbrick.cluster.elbow import kelbow_visualizer
             
-        if clustering_method == "hierarchy":
-            if wcss_method == "dendrogram":
-                # Using the dendrogram to find the optimal number of clusters
-                import scipy.cluster.hierarchy as sch
-                sch.dendrogram(sch.linkage(self.X, method='ward'))
-                plt.title("Dendrogram")
-                plt.xlabel("Customers")
-                plt.ylabel("Euclidean distances")
-                plt.show()
+            kelbow_visualizer(model=KMeans(random_state=self.settings["random_state"]), X=self.X, k=(2, n_clusters_max), metric='distortion')
+            
+        # if clustering_method == "kmeans":
+        #     if wcss_method == "elbow":
+        #         import matplotlib.pyplot as plt
+        #         from sklearn.cluster import KMeans
+                
+        #         # Using the elbow method to find the optimal number of clusters 
+        #         wcss = []
+        #         for _n_cluster in range(1, n_clusters_max):
+        #             kmeans = KMeans(n_clusters=_n_cluster, init=self.settings["kMeans_init"], random_state=self.settings["random_state"])
+        #             kmeans.fit(self.X)
+        #             wcss.append(kmeans.inertia_)
+        #         plt.clf()
+        #         plt.plot(range(1, n_clusters_max), wcss, "o-")
+        #         plt.title("The Elbow Method")
+        #         plt.xlabel("Number of clusters")
+        #         plt.ylabel("WCSS")
+        #         plt.show()
+            
+        # if clustering_method == "hierarchy":
+        #     if wcss_method == "dendrogram":
+        #         # Using the dendrogram to find the optimal number of clusters
+        #         import scipy.cluster.hierarchy as sch
+        #         plt.clf()
+        #         sch.dendrogram(sch.linkage(self.X, method='ward'))
+        #         plt.title("Dendrogram")
+        #         plt.xlabel("Customers")
+        #         plt.ylabel("Euclidean distances")
+        #         plt.show()
 
-    def kMeansClustering(self):
+    def kMeansClustering_train(self):
         
         import matplotlib.pyplot as plt
+        import matplotlib.colors as mcolors
+        from matplotlib.lines import Line2D
+        from random import sample
         from sklearn.cluster import KMeans
         
+        colors = sample(list(mcolors.XKCD_COLORS)[:-1], self.settings["kMeans_n_cluster"])
+        # markers = sample(list(Line2D.markers)[:-4], self.settings["kMeans_n_cluster"])
+                
         # Fitting K-Means to the dataset
         model = KMeans(n_clusters=self.settings["kMeans_n_cluster"], init=self.settings["kMeans_init"], random_state=self.settings["random_state"])
         y_kmeans = model.fit_predict(self.X)
         
         # Cluster with new appropriate names
-        colorlist = ['b', 'g', 'r', 'c', 'm']
         for i in range(0, self.settings["kMeans_n_cluster"]):
-            plt.scatter(self.X[y_kmeans == i, 0], self.X[y_kmeans == i, 1], s=100, c=colorlist[i], label='Cluster '+str(i+1))
-        plt.scatter(model.cluster_centers_[:, 0], model.cluster_centers_[:, 1], s=300, c='yellow', label='Centroids')
+            plt.scatter(self.X[y_kmeans == i, 0], self.X[y_kmeans == i, 1], s=100, c=colors[i], marker=".", label='Cluster '+str(i+1), alpha=0.5)
+        for i in range(0, self.settings["kMeans_n_cluster"]):
+            plt.scatter(model.cluster_centers_[i, 0], model.cluster_centers_[i, 1], s=200, c=colors[i], alpha=1)
+        
         plt.title("K-Means Clustering")
         plt.xlabel(self.X_labels[0])
         plt.ylabel(self.X_labels[1])
@@ -163,7 +180,7 @@ class ClusteringModel:
         self.kMeansClusterer = model
         return model
         
-    def hierarchicalClustering(self):
+    def hierarchicalClustering_train(self):
         # Importing the libraries
         import matplotlib.pyplot as plt
         from sklearn.cluster import AgglomerativeClustering
