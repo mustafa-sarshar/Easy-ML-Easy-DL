@@ -1,3 +1,4 @@
+# In[] Import libs
 import numpy as np
 import matplotlib.pyplot as plt
 # from mpl_toolkits.mplot3d import Axes3D
@@ -34,7 +35,7 @@ plt.show()
 
 #################### Single Dimesional Datasets and Models ####################
 # In[] Test the Models for 1D datasets
-# Init the Regression Class
+# Init the Regression Classs
 _scaling_method = None
 reg = RegressionModel(X=X[:, 0:1], y=y_1D, X_label=["X_label_1"], y_label="y_label", visualization=True, scaling_method_X=_scaling_method, scaling_method_y=_scaling_method)
 
