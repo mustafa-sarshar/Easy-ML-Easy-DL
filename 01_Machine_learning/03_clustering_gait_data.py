@@ -6,17 +6,21 @@ from sklearn.preprocessing import MinMaxScaler
 from utils.mussar_clustering import ClusteringModel
 
 # In[] init the dataset
-df_breast_cancer = pd.read_csv("datasets/others/breast_cancer.csv")
-X = df_breast_cancer.iloc[:, 1:3]
-y = df_breast_cancer.iloc[:, -1]
-n_cluster = len(set(y))
+df_breast_cancer = pd.read_csv("datasets/Gait/gait_LeftAnkle.csv", skiprows=12)
+X = df_breast_cancer.loc[:, ["Gyr_Z", "FreeAcc_U"]]
 
 # In[] Fit the model
 _scaling_method = None
 cluster = ClusteringModel(X=X.values, X_labels=X.columns, visualization=True, scaling_method_X=_scaling_method)
 
 # In[] Test the Models for clustering analysis
-cluster.calculate_wcss(clustering_method="kmeans", n_clusters_max=15, wcss_method="elbow")
+cluster.calculate_wcss(clustering_model="KMeans", k_range=(2, 10), wcss_method="elbow_yellowbrick_auto", metric="distortion")
+cluster.calculate_wcss(clustering_model="KMeans", k_range=(2, 10), wcss_method="elbow_yellowbrick_auto", metric="calinski_harabasz")
+cluster.calculate_wcss(clustering_model="", k_range=(2, 10), wcss_method="elbow_kmeans", metric="")
+cluster.calculate_wcss(clustering_model="", k_range=(2, 10), wcss_method="dendrogram", metric="")
 
-cluster.settings["kMeans_n_cluster"] = 4
+cluster.settings["kMeans_n_cluster"] = 3
 cluster_kMeans = cluster.kMeansClustering_train()
+
+cluster.settings["hierarchy_n_cluster"] = 3
+cluster_kMeans = cluster.hierarchicalClustering_train()
