@@ -113,53 +113,52 @@ class ClusteringModel:
             elif X_dimensions > 3:
                 print("Visualization for X: {X_dimensions}D is not possible at the moment.!")
     
-    def calculate_wcss(self, clustering_method="kmeans", n_clusters_max=10, wcss_method="elbow_yellowbrick"):
+    def calculate_wcss(self, clustering_model="KMeans", k_range=(2, 10), wcss_method="elbow_yellowbrick", metric="distortion"):
         
-        if wcss_method == "elbow_yellowbrick":
+        if wcss_method == "elbow_yellowbrick_auto":
             from sklearn.cluster import KMeans
             from yellowbrick.cluster.elbow import kelbow_visualizer
+            from sklearn import cluster
             
-            kelbow_visualizer(model=KMeans(random_state=self.settings["random_state"]), X=self.X, k=(2, n_clusters_max), metric='distortion')
+            model = eval(f"cluster.{clustering_model}")
+            kelbow_visualizer(model=model(random_state=self.settings["random_state"]), X=self.X, k=k_range, metric=metric)
             
-        # if clustering_method == "kmeans":
-        #     if wcss_method == "elbow":
-        #         import matplotlib.pyplot as plt
-        #         from sklearn.cluster import KMeans
-                
-        #         # Using the elbow method to find the optimal number of clusters 
-        #         wcss = []
-        #         for _n_cluster in range(1, n_clusters_max):
-        #             kmeans = KMeans(n_clusters=_n_cluster, init=self.settings["kMeans_init"], random_state=self.settings["random_state"])
-        #             kmeans.fit(self.X)
-        #             wcss.append(kmeans.inertia_)
-        #         plt.clf()
-        #         plt.plot(range(1, n_clusters_max), wcss, "o-")
-        #         plt.title("The Elbow Method")
-        #         plt.xlabel("Number of clusters")
-        #         plt.ylabel("WCSS")
-        #         plt.show()
+        elif wcss_method == "elbow_kmeans":        
+            import matplotlib.pyplot as plt
+            from sklearn.cluster import KMeans
             
-        # if clustering_method == "hierarchy":
-        #     if wcss_method == "dendrogram":
-        #         # Using the dendrogram to find the optimal number of clusters
-        #         import scipy.cluster.hierarchy as sch
-        #         plt.clf()
-        #         sch.dendrogram(sch.linkage(self.X, method='ward'))
-        #         plt.title("Dendrogram")
-        #         plt.xlabel("Customers")
-        #         plt.ylabel("Euclidean distances")
-        #         plt.show()
+            # Using the elbow method to find the optimal number of clusters 
+            wcss = []
+            for _n_cluster in range(k_range[0], k_range[1]):
+                kmeans = KMeans(n_clusters=_n_cluster, init=self.settings["kMeans_init"], random_state=self.settings["random_state"])
+                kmeans.fit(self.X)
+                wcss.append(kmeans.inertia_)
+            plt.clf()
+            plt.plot(range(k_range[0], k_range[1]), wcss, "o-")
+            plt.title("The Elbow Method")
+            plt.xlabel("Number of clusters")
+            plt.ylabel("WCSS")
+            plt.show()
+            
+        elif wcss_method == "dendrogram":            
+            # Using the dendrogram to find the optimal number of clusters
+            import matplotlib.pyplot as plt
+            import scipy.cluster.hierarchy as sch
+            plt.clf()
+            sch.dendrogram(sch.linkage(self.X, method='ward'))
+            plt.title("Dendrogram - 'ward' method")
+            plt.xlabel("Customers")
+            plt.ylabel("Euclidean distances")
+            plt.show()
 
     def kMeansClustering_train(self):
         
         import matplotlib.pyplot as plt
         import matplotlib.colors as mcolors
-        from matplotlib.lines import Line2D
         from random import sample
         from sklearn.cluster import KMeans
         
         colors = sample(list(mcolors.XKCD_COLORS)[:-1], self.settings["kMeans_n_cluster"])
-        # markers = sample(list(Line2D.markers)[:-4], self.settings["kMeans_n_cluster"])
                 
         # Fitting K-Means to the dataset
         model = KMeans(n_clusters=self.settings["kMeans_n_cluster"], init=self.settings["kMeans_init"], random_state=self.settings["random_state"])
@@ -167,9 +166,9 @@ class ClusteringModel:
         
         # Cluster with new appropriate names
         for i in range(0, self.settings["kMeans_n_cluster"]):
-            plt.scatter(self.X[y_kmeans == i, 0], self.X[y_kmeans == i, 1], s=100, c=colors[i], marker=".", label='Cluster '+str(i+1), alpha=0.5)
+            plt.scatter(self.X[y_kmeans == i, 0], self.X[y_kmeans == i, 1], s=100, c=colors[i], marker=".", label='Cluster '+str(i+1), alpha=1)
         for i in range(0, self.settings["kMeans_n_cluster"]):
-            plt.scatter(model.cluster_centers_[i, 0], model.cluster_centers_[i, 1], s=200, c=colors[i], alpha=1)
+            plt.scatter(model.cluster_centers_[i, 0], model.cluster_centers_[i, 1], s=300, c=colors[i], alpha=1)
         
         plt.title("K-Means Clustering")
         plt.xlabel(self.X_labels[0])
@@ -183,16 +182,17 @@ class ClusteringModel:
     def hierarchicalClustering_train(self):
         # Importing the libraries
         import matplotlib.pyplot as plt
-        from sklearn.cluster import AgglomerativeClustering
-        
+        import matplotlib.colors as mcolors
+        from random import sample
+        from sklearn.cluster import AgglomerativeClustering        
        
-        model = AgglomerativeClustering(n_clusters=self.settings["hierarchy_n_cluster"], affinity = 'euclidean', linkage = 'ward')
+        model = AgglomerativeClustering(n_clusters=self.settings["hierarchy_n_cluster"], affinity="euclidean", linkage="ward")
         y_hc = model.fit_predict(self.X)
         
         # Cluster with new appropriate names
-        colorlist = ['b', 'g', 'r', 'c', 'm']
+        colors = sample(list(mcolors.XKCD_COLORS)[:-1], self.settings["hierarchy_n_cluster"])
         for i in range(0, self.settings["hierarchy_n_cluster"]):
-            plt.scatter(self.X[y_hc == i, 0], self.X[y_hc == i, 1], s = 100, c = colorlist[i], label = 'Cluster '+str(i+1))
+            plt.scatter(self.X[y_hc == i, 0], self.X[y_hc == i, 1], s=100, c=colors[i], label="Cluster "+str(i+1))
         plt.title("Hierarchical Clustering")
         plt.xlabel(self.X_labels[0])
         plt.ylabel(self.X_labels[1])
