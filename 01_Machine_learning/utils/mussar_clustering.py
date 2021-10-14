@@ -113,9 +113,9 @@ class ClusteringModel:
             elif X_dimensions > 3:
                 print("Visualization for X: {X_dimensions}D is not possible at the moment.!")
     
-    def calculate_wcss(self, clustering_model="KMeans", k_range=(2, 10), wcss_method="elbow_yellowbrick", metric="distortion"):
+    def estimate_k(self, clustering_model="KMeans", k_range=(2, 10), method="elbow_yellowbrick", metric="distortion"):
         
-        if wcss_method == "elbow_yellowbrick_auto":
+        if method == "elbow_yellowbrick_auto":
             from sklearn.cluster import KMeans
             from yellowbrick.cluster.elbow import kelbow_visualizer
             from sklearn import cluster
@@ -123,7 +123,7 @@ class ClusteringModel:
             model = eval(f"cluster.{clustering_model}")
             kelbow_visualizer(model=model(random_state=self.settings["random_state"]), X=self.X, k=k_range, metric=metric)
             
-        elif wcss_method == "elbow_kmeans":        
+        elif method == "elbow_kmeans":        
             import matplotlib.pyplot as plt
             from sklearn.cluster import KMeans
             
@@ -140,7 +140,7 @@ class ClusteringModel:
             plt.ylabel("WCSS")
             plt.show()
             
-        elif wcss_method == "dendrogram":            
+        elif method == "dendrogram":            
             # Using the dendrogram to find the optimal number of clusters
             import matplotlib.pyplot as plt
             import scipy.cluster.hierarchy as sch

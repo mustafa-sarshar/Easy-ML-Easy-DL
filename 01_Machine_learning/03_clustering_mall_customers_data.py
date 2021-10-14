@@ -16,10 +16,10 @@ _scaling_method = None
 cluster = ClusteringModel(X=X.values, X_labels=X.columns, visualization=True, scaling_method_X=_scaling_method)
 
 # In[] Test the Models for clustering analysis
-cluster.calculate_wcss(clustering_model="KMeans", k_range=(2, 10), wcss_method="elbow_yellowbrick_auto", metric="distortion")
-cluster.calculate_wcss(clustering_model="KMeans", k_range=(2, 10), wcss_method="elbow_yellowbrick_auto", metric="calinski_harabasz")
-cluster.calculate_wcss(clustering_model="", k_range=(2, 10), wcss_method="elbow_kmeans", metric="")
-cluster.calculate_wcss(clustering_model="", k_range=(2, 10), wcss_method="dendrogram", metric="")
+cluster.estimate_k(clustering_model="KMeans", k_range=(2, 10), method="elbow_yellowbrick_auto", metric="distortion")
+cluster.estimate_k(clustering_model="KMeans", k_range=(2, 10), method="elbow_yellowbrick_auto", metric="calinski_harabasz")
+cluster.estimate_k(clustering_model="", k_range=(2, 10), method="elbow_kmeans", metric="")
+cluster.estimate_k(clustering_model="", k_range=(2, 10), method="dendrogram", metric="")
 
 cluster.settings["kMeans_n_cluster"] = 2
 cluster_kMeans = cluster.kMeansClustering_train()
